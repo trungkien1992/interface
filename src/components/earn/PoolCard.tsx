@@ -120,14 +120,16 @@ export default function PoolCard({
           {currency0.symbol}-{currency1.symbol}
         </TYPE.white>
 
-        <StyledInternalLink
-          to={`/png/${currencyId(currency0)}/${currencyId(currency1)}/${version}`}
-          style={{ width: '100%' }}
-        >
-          <ButtonPrimary padding="8px" borderRadius="8px">
-            {isStaking ? 'Manage' : 'Deposit'}
-          </ButtonPrimary>
-        </StyledInternalLink>
+        {(isStaking || !stakingInfo.isPeriodFinished) && (
+          <StyledInternalLink
+            to={`/png/${currencyId(currency0)}/${currencyId(currency1)}/${version}`}
+            style={{ width: '100%' }}
+          >
+            <ButtonPrimary padding="8px" borderRadius="8px">
+              {isStaking ? 'Manage' : 'Deposit'}
+            </ButtonPrimary>
+          </StyledInternalLink>
+        )}
       </TopSection>
 
       <StatContainer>
@@ -142,11 +144,11 @@ export default function PoolCard({
         </RowBetween>
         <RowBetween>
           <TYPE.white> Pool rate </TYPE.white>
-          <TYPE.white>{`${weeklyRewardAmount.toFixed(0, { groupSeparator: ',' })} PNG / week`}</TYPE.white>
+          <TYPE.white>{stakingInfo.isPeriodFinished ? `Inactive` : `${weeklyRewardAmount.toFixed(0, { groupSeparator: ',' })} PNG / week`}</TYPE.white>
         </RowBetween>
         <RowBetween>
           <TYPE.white> Current reward </TYPE.white>
-          <TYPE.white>{`${weeklyRewardPerAvax.toFixed(4, { groupSeparator: ',' }) ??
+          <TYPE.white>{stakingInfo.isPeriodFinished ? `Inactive` : `${weeklyRewardPerAvax.toFixed(4, {groupSeparator: ','}) ?? 
             '-'} PNG / Week per AVAX`}</TYPE.white>
         </RowBetween>
         <RowBetween>

@@ -228,6 +228,8 @@ export interface StakingInfo {
 	totalStakedInWavax: TokenAmount
 	// when the period ends
 	periodFinish: Date | undefined
+	// has the reward period ended
+	isPeriodFinished: boolean
 	// calculates a hypothetical amount of token distributed to the active account per second.
 	getHypotheticalRewardRate: (
 		stakedAmount: TokenAmount,
@@ -386,6 +388,7 @@ export function useStakingInfo(version: number, pairToFilterBy?: Pair | null): S
 				const stakedAmount = new TokenAmount(dummyPair.liquidityToken, JSBI.BigInt(balanceState?.result?.[0] ?? 0))
 				const totalStakedAmount = new TokenAmount(dummyPair.liquidityToken, totalSupply)
 				const totalRewardRate = new TokenAmount(png, JSBI.BigInt(rewardRateState.result?.[0]))
+        const zeroPNGAmount = new TokenAmount(png, JSBI.BigInt(0))
 				const isAvaxPool = tokens[0].equals(WAVAX[tokens[0].chainId])
 				const totalStakedInWavax = isAvaxPool ?
 					calculteTotalStakedAmountInAvax(totalSupply, pair.reserveOf(wavax).raw, totalStakedAmount) :
@@ -411,14 +414,17 @@ export function useStakingInfo(version: number, pairToFilterBy?: Pair | null): S
 				const individualRewardRate = getHypotheticalRewardRate(stakedAmount, totalStakedAmount, totalRewardRate)
 
 				const periodFinishMs = periodFinishState.result?.[0]?.mul(1000)?.toNumber()
+        // periodFinish will be 0 immediately after a reward contract is initialized
+        const isPeriodFinished = periodFinishMs === 0 ? false : periodFinishMs < Date.now()
 
 				memo.push({
 					stakingRewardAddress: rewardsAddress,
 					tokens: tokens,
 					periodFinish: periodFinishMs > 0 ? new Date(periodFinishMs) : undefined,
+          isPeriodFinished: isPeriodFinished,
 					earnedAmount: new TokenAmount(png, JSBI.BigInt(earnedAmountState?.result?.[0] ?? 0)),
-					rewardRate: individualRewardRate,
-					totalRewardRate: totalRewardRate,
+					rewardRate: isPeriodFinished ? zeroPNGAmount : individualRewardRate,
+					totalRewardRate: isPeriodFinished ? zeroPNGAmount : totalRewardRate,
 					stakedAmount: stakedAmount,
 					totalStakedAmount: totalStakedAmount,
 					totalStakedInWavax: totalStakedInWavax,
